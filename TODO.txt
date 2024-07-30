@@ -1,0 +1,29 @@
+====================================================
+The contents of rincs/ has been copied from Rserve/src/*.h
+Not sure that this is the best thing to have done
+Also modified
+  421 | extern int isByteSexOk();
+  to
+  421 | extern int isByteSexOk(void);
+====================================================
+In exec_str, I am able to get back booleans but not very well
+Not quite sure how to interpret the server's response
+I am able to get one boolean back correctly
+Was able to solve the problem of exists("coeff") which was failing
+Had to hack my way around it by doing
+paste("B", exists("coeff"))
+====================================================
+
+exec_str needs to be able to return things other than str
+otherwise following fails 
+
+parseString("length(n_ind)")
+buffer parsed, stat=1, parts=1
+result type: 20, length: 1
+R_tryEval(xp,R_GlobalEnv,&Rerror);
+Calling R_tryEval for expression 1 [type=6] ...
+Expression 1, error code: 0
+expression(s) evaluated (Rerror=0).
+Vector of 1 integers:
+1834
+

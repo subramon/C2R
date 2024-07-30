@@ -1,0 +1,26 @@
+From https://www.rforge.net/Rserve/faq.html
+
+How do I get textual output of commands from Rserve?
+
+Rserve doesn't return any output printed by the evaluated
+expressions. The idea is to return data in binary form, which is
+faster and more flexible. Nevertheless sometimes it may be convenient
+to simply reproduce the printed output given in R (such as a model
+summary). The R function capture.output can be used for that purpose -
+it returns a vector of strings (each entry correspnds to one line of
+output).
+
+========================================
+How can I debug Rserve or see the structure of the evaluated data?
+
+There is a special debug version of Rserve which displays a lot of information when run, among others all packets sent and results on the R side. By default it is compiled along with the regular version and can be found in the $RHOME/library/Rserve directory as Rserve.dbg. One way to run it is to use Rserve(TRUE) in R to start it. Another way (in unix) is to copy the Rserve.dbg file into $RHOME/bin and run it via
+R CMD Rserve.dbg
+Unlike the regular version this one doesn't daemonize but prints everything on the stdout. It is really verbose and much slower than the regular version, so use it for debugging purposes or if you want to analyze the R objects resulting from the evaluation.
+
+=================================
+Where are Rcli and C/C++ client sources?
+
+Rcli C client was removed from recent Rserve sources, because it was compatible only with Rserve version 0.1 and no one seemd to use it anyway (there's a nice direct C API to R). You can still find Rcli.c in the old source releases. It is obsolete by now since the C++ client was released in Rserve version 0.3-14. It can be found in the src/client/cxx directory.
+
+IMPORTANT: At some point in time, we may also want to deprecate Rserve and go
+directly to C without a server in between. For now, this is a good compromise.

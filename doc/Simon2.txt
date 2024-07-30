@@ -1,0 +1,9 @@
+Ramesh,
+
+a good starting point for a C client is RScilent:
+
+https://github.com/s-u/RSclient/blob/master/src/cli.c
+
+It is a full C implementation, has decent socket abstraction and supports TLS, but it doesn't have a dev-side API, i.e., it doesn't abstract R objects in pure C, it uses R's API to represent the objects on the C side. Part of the reason why there is no proper C API is that there are no native representations of the R objects, so you can only use subset without creating another system.
+
+The C API is quite straight-forward, I'm not sure about tutorials, but it is described in the R-exts R manual[1]. It's mostly intuitive, all R objects are of the C type SEXP which is a pointer to the R object which has a type (like integer, real, complex, list, environment, ... see TYPEOF(x)) - have a look at the Rinternals.h headers file which has pretty much all you ever need. You access the data pointer with the corresponding macros so INTEGER(x) for int*, REAL(x) for double * etc. LENGTH(x) for the length (or XLENGTH(x) if >2g). Allocations are done with allocVector(), lists elements (i.e. R objects) are accessed via VECTOR_ELT(x, index) and written with SET_VECTOR_ELT(x, index, value). Only strings are a bit different - the elements are not char* directly, but you access them with STRING_ELT(x, index) which gives you another R object on which you call CHAR(x) to get the char*. The inverse mkChar() allocates a new string. So after this crash-course, you should be able to read the code above ;)

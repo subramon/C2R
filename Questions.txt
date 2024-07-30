@@ -1,0 +1,16 @@
+When I define a function I get Unknoiwn type below. Is this okay?
+
+parseString(" callgam <- function(rsdf, str_formula) {  rsdf$co_loc_i <- as.factor(rsdf$co_loc_i);  args <- list(    data =  rsdf,    family = nb,     formula = as.formula(str_formula),     controls = list(trace = FALSE, keepData = FALSE)  );  do.call(gam, args)  } ")
+buffer parsed, stat=1, parts=3
+result type: 20, length: 1
+R_tryEval(xp,R_GlobalEnv,&Rerror);
+Calling R_tryEval for expression 1 [type=6] ...
+Expression 1, error code: 0
+expression(s) evaluated (Rerror=0).
+Unknown type: 3
+OUT.sendRespData
+HEAD DUMP [16]: 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00  |................
+(no body)
+reply sent.
+
+

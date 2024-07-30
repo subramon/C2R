@@ -1,0 +1,105 @@
+I was thinking about it after our call and I think for your purpose another option may be to add "compressed" data types directly into the Rserve protocol as an optional feature. I.e., by default the protocol would not change (so existing clients are not confused), but if configured it would add new types to the protocol which would be easy for you to parse - and it would understand any parsimonious types you send. There is not a huge difference between the two approaches - essentially the raw vector simply "boxes" the content, but by doing the parsing in Rserve itself it makes it a bit easier to maintain.
+
+As for the types - I wonder would this be a good start:
+
+logical:
+ - 2-bit storage (FALSE, TRUE, NA, (unused))
+integer:
+ - 8-bit signed storage
+ - 16-bit signed storage
+real:
+I'm not sure I'd like to add 32-bit floats (the loss of precision may be a bit dangerous - but let me know what you think), but instead we could add a flag that allows the use of any integer type, but the result in R is then flagged as real - that way at least reals which all hold integers would be transported efficiently.
+
+I would help you write the C code - including showing you how to send multiple columns at once.
+
+For truly expert use CMD_eval supports QAP encoded payload instead of strings, which means you can send a call with the data in one command if you wish. An example:
+
+> df = data.frame(a=1:2, b=3:4)
+> c=RS.connect()
+> RS.eval.qap(c, bquote(sapply(.(df), mean)))
+  a   b
+1.5 3.5
+
+[bquote in R allows to evaluate payload in .() on the local side before sending it - it is just an illustration to show how you can send a call with full payload instead of symbol/reference - see below].
+
+The request body:
+
+0a 88 00 00 ## DT_SEXP
+  16 84 00 00  ## XT_LANG_NOTAG
+    13 08 00 00  ## XT_SYMNAME
+      "sapply"
+    90 68 00 00 ## XT_HAS_ATTR | XT_VECTOR
+      ## the attributes:
+      15 4c 00 00  ## XT_LIST_TAG
+        22 04 00 00  ## XT_ARRAY_STR
+          "a", "b"
+        13 08 00 00 ## XT_SYMNAME
+          "names"
+        22 0c 00 00 ## XT_ARRAY_STR
+          "data.frame"
+        13 08 00 00 ## XT_SYMNAME
+          "class"
+        20 08 00 00 ## XT_ARRAY_INT
+          NA, -2
+        13 0c 00 00 ## XT_SYMNAME
+          "row.names"
+      ## the vector payload:
+      20 08 00 00 ## XT_ARRAY_INT
+        1, 2
+      20 08 00 00 ## XT_ARRAY_INT
+        3,4
+  13 08 00 00 ## XT_SYMNAME
+     "mean"
+
+You can the structure in R since QAP pretty much just encodes the R representation:
+
+> bquote(sapply(.(df), mean))
+sapply(list(a = 1:2, b = 3:4), mean)
+
+> .Internal(inspect(bquote(sapply(.(df), mean))))
+@7ff754f04438 06 LANGSXP g0c0 []
+  @7ff756071008 01 SYMSXP g0c0 [MARK,REF(35),LCK,gp=0x4000] "sapply" (has value)
+  @7ff754151108 19 VECSXP g0c2 [OBJ,REF(9),ATT] (len=2, tl=0)
+    @7ff754a87a30 13 INTSXP g0c0 [REF(65535)]  1 : 2 (expanded)
+    @7ff754a87950 13 INTSXP g0c0 [REF(65535)]  3 : 4 (expanded)
+  ATTRIB:
+    @7ff7548e8d28 02 LISTSXP g0c0 [REF(1)]
+      TAG: @7ff75480d020 01 SYMSXP g0c0 [MARK,REF(6657),LCK,gp=0x4000] "names" (has value)
+      @7ff754152108 16 STRSXP g0c2 [REF(65535)] (len=2, tl=0)
+        @7ff7559a5e38 09 CHARSXP g0c1 [MARK,REF(13),gp=0x61] [ASCII] [cached] "a"
+        @7ff7560b21c8 09 CHARSXP g0c1 [MARK,REF(18),gp=0x61] [ASCII] [cached] "b"
+      TAG: @7ff75480d5d0 01 SYMSXP g0c0 [MARK,REF(13741),LCK,gp=0x4000] "class" (has value)
+      @7ff754ac4ae0 16 STRSXP g0c1 [REF(65535)] (len=1, tl=0)
+        @7ff755848588 09 CHARSXP g0c2 [MARK,REF(277),gp=0x61,ATT] [ASCII] [cached] "data.frame"
+      TAG: @7ff75480cdf0 01 SYMSXP g0c0 [MARK,REF(65535),LCK,gp=0x4000] "row.names" (has value)
+      @7ff7548e6f58 13 INTSXP g0c1 [REF(1)] (len=2, tl=0) -2147483648,-2
+  @7ff754823250 01 SYMSXP g0c0 [MARK,REF(23),LCK,gp=0x4000] "mean" (has value)
+
+
+And the result:
+
+@7ff754969848 14 REALSXP g0c2 [REF(1),ATT] (len=2, tl=0) 1.5,3.5
+ATTRIB:
+  @7ff757304ac0 02 LISTSXP g0c0 [REF(1)]
+    TAG: @7ff75480d020 01 SYMSXP g0c0 [MARK,REF(6677),LCK,gp=0x4000] "names" (has value)
+    @7ff754969808 16 STRSXP g0c2 [REF(1)] (len=2, tl=0)
+      @7ff7559a5e38 09 CHARSXP g0c1 [MARK,REF(14),gp=0x61] [ASCII] [cached] "a"
+      @7ff7560b21c8 09 CHARSXP g0c1 [MARK,REF(19),gp=0x61] [ASCII] [cached] "b"
+
+in QAP:
+
+0a 2c 00 00 ## DT_SEXP
+  a1 28 00 00  ## XT_HAS_ATTR | XT_ARRAY_DOUBLE
+    ## attributes:
+    15 14 00 00 ## XT_LIST_TAG
+      22 04 00 00 ## XT_ARRAY_STR
+        "a", "b"
+      13 08 00 00 ## XT_SYMNAME
+        "names"
+    ## double payload
+      1.5, 3.5
+
+Cheers,
+Simon
+
+

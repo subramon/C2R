@@ -1,0 +1,44 @@
+On the input side, meta data that we need to know is
+n1, the number of rows
+m1, the number of columns
+widths[m]
+
+Data is just a concatenation of the columns
+
+On the output side, the meta data that we need to know is
+n2 (same as n1)
+m2, the number of columns
+qtypes[m2], where qtypes[i] can be one of F8, I4, I1 corresponding to 
+XT_ARRAY_DOUBLE
+XT_ARRAY_INT
+XT_ARRAY_BOOL
+
+source[m2], where 0 <= source[i] < m1 
+mechanism[m2] is of type extractor_t
+
+
+typedef enum _extractor_t {
+  undef_extractor,
+
+  I1_to_I1,
+
+  I1_to_I4,
+  I2_to_I4,
+  I4_to_I4,
+  UI1_to_I4,
+  UI2_to_I4,
+
+  I1_to_F8,
+  I2_to_F8,
+  I4_to_F8,
+  UI1_to_F8,
+  UI2_to_F8,
+
+  BITS_to_I1
+  BITS_to_I4
+  
+} extractor_enum_t;
+
+typedef struct _extractor
+
+ 
