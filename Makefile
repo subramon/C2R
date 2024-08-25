@@ -20,16 +20,16 @@ INCS += -I./rincs/
 
 UNIT_TESTS := unit_test_1
 
-all : librcli.so rshutdown ${UNIT_TESTS}
+all : libc2r.so rshutdown ${UNIT_TESTS}
 
-unit_test_1 : ./test/unit_test_1.o librcli.so
+unit_test_1 : ./test/unit_test_1.o libc2r.so
 	$(CC) $(CFLAGS) ./test/unit_test_1.o  \
-	librcli.so \
+	libc2r.so \
 	-o unit_test_1
 
 rshutdown : ./src/rshutdown.o 
 	$(CC) $(CFLAGS) ./src/rshutdown.o  \
-		librcli.so -o rshutdown 
+		libc2r.so -o rshutdown 
 
 LIB_SRCS := src/aux_rcli.c 
 LIB_SRCS += src/get_named_vec.c 
@@ -53,8 +53,8 @@ LIB_OBJS = $(patsubst %.c, %.o, $(LIB_SRCS))
 
 ./test/unit_test_1.o : CFLAGS += -Wno-cast-align
 
-librcli.so : $(LIB_OBJS)
-	$(CC) -fPIC -shared $(CFLAGS) $(LIB_OBJS) -o librcli.so  
+libc2r.so : $(LIB_OBJS)
+	$(CC) -fPIC -shared $(CFLAGS) $(LIB_OBJS) -o libc2r.so  
 
 clean:
 	rm -r -f *.o rshutdown *.so ${UNIT_TESTS} ./src/*.o ./test/*.o
