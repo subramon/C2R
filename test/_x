@@ -1,1 +1,0 @@
-    if ( !chk_R_class(sock, "vecSC", "character") ) { go_BYE(-1); } 
