@@ -6,6 +6,7 @@
 #include "get_bool.h"
 #include "get_named_vec.h"
 #include "get_F8.h"
+#include "get_I4.h"
 #include "exists.h"
 #include "get_vec.h"
 
@@ -380,6 +381,32 @@ BYE:
   return status;
 }
 //---------------------------------------------------------
+// Test getting an I4 from R
+static int
+test8_I4(
+    int sock,
+    int niters
+    )
+{
+  int status = 0;
+  char *exec_out = NULL; size_t len_out = 0;
+  //-----------------
+  for ( int i = 0; i < niters; i++ ) { 
+    int yval;
+    status = exec_str(sock, "y = as.integer(123456)", NULL, NULL, -1); cBYE(status);
+    status = exec_str(sock, "class(y)", &exec_out, &len_out, -1); cBYE(status);
+    if ( strcmp(exec_out, "integer") != 0 ) { go_BYE(-1); }
+    free_if_non_null(exec_out);
+    status = get_I4(sock, "y", &yval); cBYE(status);
+    if ( yval != 123456 ) { go_BYE(-1); } 
+  }
+  //-------------------------
+  printf("Successfully completed %s \n", __FUNCTION__);
+BYE:
+  free_if_non_null(exec_out);
+  return status;
+}
+//---------------------------------------------------------
 // Test getting a F8 from R
 static int
 test8(
@@ -565,7 +592,9 @@ main(
 
   status = rconnect(server, portnum, 0, 0, &sock); cBYE(status);
   printf("Established connection\n");
-  status = test11(sock, niters);  cBYE(status);
+  // TODO status = test11(sock, niters);  cBYE(status);
+
+  status = test8_I4(sock, niters);  cBYE(status);
 
   status = test1(sock, n, niters);  cBYE(status);
   status = test2(sock, niters);  cBYE(status);

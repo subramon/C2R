@@ -40,6 +40,7 @@ LIB_SRCS += src/exists.c
 LIB_SRCS += src/chk_R_class.c 
 LIB_SRCS += src/n_df.c 
 LIB_SRCS += src/get_F8.c 
+LIB_SRCS += src/get_I4.c 
 LIB_OBJS = $(patsubst %.c, %.o, $(LIB_SRCS)) 
 
 ./src/aux_rcli.o : CFLAGS += -Wno-cast-align
