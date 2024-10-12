@@ -9,6 +9,7 @@
 #include "get_I4.h"
 #include "exists.h"
 #include "get_vec.h"
+#include "str_array_R_to_C.h"
 
 //---------------------------------------------------------
 // Purpose: Send and receive an F8 vector of length n. Repeat niters
@@ -89,6 +90,75 @@ test2(
   printf("Successfully completed %s \n", __FUNCTION__);
 BYE:
   free_if_non_null(exec_out);
+  return status;
+}
+// Tests getting  of vector of type SC
+static int 
+test_get_SC_1(
+    int sock,
+    int niters
+    )
+{
+  int status = 0;
+  const char * const Rcmd = 
+        " years <- seq.int(1994, 2015); "
+        " dates <- numeric(length = length(years)); "
+        " for (i in seq_along(years)) { "
+        "    dates[i] <- sprintf(\"%s-01-01\", years[i]) "
+        " } ";
+  for ( int i = 0; i < niters; i++ ) { 
+    char **Cstr = NULL;
+    status = exec_str(sock, Rcmd, NULL, NULL, -1); cBYE(status);
+    if ( !chk_R_class(sock, "dates", "character") ) { go_BYE(-1); } 
+    int chk_n;
+    status = get_vec_len(sock, "dates", &chk_n);
+    if ( chk_n != 22 ) { go_BYE(-1); } 
+    char *data = NULL; int nbytes = 0; 
+    status = get_vec(sock, "dates", "SC", &data, &nbytes); cBYE(status);
+    status = str_array_R_to_C(data, nbytes, 12, chk_n, &Cstr); cBYE(status);
+    if ( Cstr == NULL ) { go_BYE(-1); }
+    for ( int j = 0; j < chk_n; j++ ) {
+      // printf("%d:%s\n", j, Cstr[j]);
+      free_if_non_null(Cstr[j]);
+    }
+    free_if_non_null(Cstr);
+  }
+  //-------------------
+  printf("Successfully completed %s \n", __FUNCTION__);
+BYE:
+  return status;
+}
+static int 
+test_get_SC_2(
+    int sock,
+    int niters
+    )
+{
+  int status = 0;
+  const char * const Rcmd = 
+        " vecSC <- c( \"\", \"a\", \"bc\", \"def\", \"ghij\" ) ";
+  for ( int i = 0; i < niters; i++ ) { 
+    char **Cstr = NULL;
+    status = exec_str(sock, Rcmd, NULL, NULL, -1); cBYE(status);
+    if ( !chk_R_class(sock, "vecSC", "character") ) { go_BYE(-1); } 
+    int chk_n;
+    status = get_vec_len(sock, "vecSC", &chk_n);
+    if ( chk_n != 5 ) { go_BYE(-1); } 
+    char *data = NULL; int nbytes = 0; 
+    uint32_t width = 5; 
+    status = get_vec(sock, "vecSC", "SC", &data, &nbytes); cBYE(status);
+    status = str_array_R_to_C(data, nbytes, width, chk_n, &Cstr); 
+    cBYE(status);
+    if ( Cstr == NULL ) { go_BYE(-1); }
+    for ( int j = 0; j < chk_n; j++ ) {
+      printf("%d:%s\n", j, Cstr[j]);
+      free_if_non_null(Cstr[j]);
+    }
+    free_if_non_null(Cstr);
+  }
+  //-------------------
+  printf("Successfully completed %s \n", __FUNCTION__);
+BYE:
   return status;
 }
 // Tests creation of vector of type SC
@@ -592,7 +662,7 @@ main(
 
   status = rconnect(server, portnum, 0, 0, &sock); cBYE(status);
   printf("Established connection\n");
-  // TODO status = test11(sock, niters);  cBYE(status);
+  // status = test11(sock, niters);  cBYE(status);
 
   status = test8_I4(sock, niters);  cBYE(status);
 
@@ -600,6 +670,8 @@ main(
   status = test2(sock, niters);  cBYE(status);
   status = test3(sock, n, niters);  cBYE(status);
   status = test3_SC(sock, n, niters);  cBYE(status);
+  status = test_get_SC_1(sock, niters);  cBYE(status);
+  status = test_get_SC_2(sock, niters);  cBYE(status);
   status = test4(sock, niters);  cBYE(status);
   status = test5(sock, niters);  cBYE(status);
   status = test6(sock, niters);  cBYE(status);

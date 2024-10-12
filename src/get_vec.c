@@ -22,7 +22,7 @@ get_vec(
   size_t payload_len = 0; int num_read;
   size_t len_param1 = 0; char *param1 = NULL;
   status = mk_dt_string(name, &param1, &len_param1);  cBYE(status);
-  uint32_t width = 0;
+  uint32_t width = 0;  char *data = NULL; int sz = 0;
 
   if ( name == NULL  ) { go_BYE(-1); }
   if ( qtype == NULL  ) { go_BYE(-1); }
@@ -34,6 +34,9 @@ get_vec(
   }
   else if ( strcmp(qtype, "I1") == 0 ) {
     width = sizeof(int8_t);
+  }
+  else if ( strcmp(qtype, "SC") == 0 ) { 
+    width = 1; 
   }
   else {
     go_BYE(-1);
@@ -70,6 +73,9 @@ get_vec(
   else if ( strcmp(qtype, "I4") == 0  ) { 
     if ( ( pp[1] & 0xFF ) != XT_ARRAY_INT ) { go_BYE(-1); }
   }
+  else if ( strcmp(qtype, "SC") == 0 ) { 
+    if ( ( pp[1] & 0xFF ) != XT_ARRAY_STR ) { go_BYE(-1); }
+  }
   else if ( strcmp(qtype, "I1") == 0  ) { 
     if ( ( pp[1] & 0xFF ) != XT_ARRAY_BOOL ) { go_BYE(-1); }
   }
@@ -92,8 +98,8 @@ get_vec(
   // TODO TODO n--; //  TODO TODO TODO P1 P1 WHY is this needed?
   // I think above is done because server pads with extra 8 bytes at end
 
-  int sz = n * width; // TODO TODO P1 Is this -1 correct?
-  char *data = malloc(sz); return_if_malloc_failed(data);
+  sz = n * width; 
+  data = malloc(sz); return_if_malloc_failed(data);
   status = get_buf_from_sock(sock, (char *)data, sz, &num_read);
   cBYE(status);
   *ptr_data = data;
