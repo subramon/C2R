@@ -6,12 +6,16 @@ str_array_R_to_C(
     size_t Rsz,
     uint32_t width,
     uint32_t n,
-    char ***ptr_Cstr
+    char **ptr_Cstr,
+    char ***ptr_Carr
     )
 {
   int status = 0;
-  char **Cstr = NULL;
-  *ptr_Cstr = NULL; 
+  char **Carr = NULL; char *Cstr = NULL; 
+  
+
+  if ( ( ptr_Carr != NULL ) && ( ptr_Cstr != NULL ) ) { go_BYE(-1); }
+  if ( ( ptr_Carr == NULL ) && ( ptr_Cstr == NULL ) ) { go_BYE(-1); }
 
   if ( width == 0 ) { go_BYE(-1); } 
   if ( n == 0 ) { go_BYE(-1); } 
@@ -27,19 +31,36 @@ str_array_R_to_C(
     if ( strlen(cptr) >= n ) { go_BYE(-1); } 
     cptr += strlen(cptr); 
   }
-  // allocate Cstr
-  Cstr = malloc(n * sizeof(char *));
-  for ( uint32_t i = 0; i < n; i++ ) { 
-    Cstr[i] = malloc(width);
-    memset(Cstr[i], 0,  width);
+  // return either Cstr or Carr
+  if ( ptr_Carr != NULL ) { 
+    // allocate Carr
+    Carr = malloc(n * sizeof(char *));
+    for ( uint32_t i = 0; i < n; i++ ) { 
+      Carr[i] = malloc(width);
+      memset(Carr[i], 0,  width);
+    }
+    // copy individual strings 
+    cptr = Rstr;
+    for ( uint32_t i = 0; i < n; i++ ) { 
+      strcpy(Carr[i], cptr); 
+      cptr += strlen(cptr) + 1;
+    }
+    *ptr_Carr = Carr;
   }
-  // copy individual strings 
-  cptr = Rstr;
-  for ( uint32_t i = 0; i < n; i++ ) { 
-    strcpy(Cstr[i], cptr); 
-    cptr += strlen(cptr) + 1;
+  if ( ptr_Cstr != NULL ) { 
+    // allocate Cstr
+    Cstr = malloc(n * width);
+    memset(Cstr, 0,  n * width);
+    // copy individual strings 
+    cptr = Rstr;
+    char *dst = Cstr; 
+    for ( uint32_t i = 0; i < n; i++ ) { 
+      strcpy(dst, cptr); 
+      cptr += strlen(cptr) + 1;
+      dst += width; 
+    }
+    *ptr_Cstr = Cstr;
   }
-  *ptr_Cstr = Cstr;
 BYE:
   return status;
 }

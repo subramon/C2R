@@ -115,7 +115,8 @@ test_get_SC_1(
     if ( chk_n != 22 ) { go_BYE(-1); } 
     char *data = NULL; int nbytes = 0; 
     status = get_vec(sock, "dates", "SC", &data, &nbytes); cBYE(status);
-    status = str_array_R_to_C(data, nbytes, 12, chk_n, &Cstr); cBYE(status);
+    status = str_array_R_to_C(data, nbytes, 12, chk_n, NULL, &Cstr); 
+    cBYE(status);
     if ( Cstr == NULL ) { go_BYE(-1); }
     for ( int j = 0; j < chk_n; j++ ) {
       // printf("%d:%s\n", j, Cstr[j]);
@@ -147,11 +148,11 @@ test_get_SC_2(
     char *data = NULL; int nbytes = 0; 
     uint32_t width = 5; 
     status = get_vec(sock, "vecSC", "SC", &data, &nbytes); cBYE(status);
-    status = str_array_R_to_C(data, nbytes, width, chk_n, &Cstr); 
+    status = str_array_R_to_C(data, nbytes, width, chk_n, NULL, &Cstr); 
     cBYE(status);
     if ( Cstr == NULL ) { go_BYE(-1); }
     for ( int j = 0; j < chk_n; j++ ) {
-      printf("%d:%s\n", j, Cstr[j]);
+      // printf("%d:%s\n", j, Cstr[j]);
       free_if_non_null(Cstr[j]);
     }
     free_if_non_null(Cstr);
