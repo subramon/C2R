@@ -13,7 +13,7 @@ get_vec(
     const char * const name,
     const char * const qtype,
     char ** restrict ptr_data, // [n]
-    int * restrict ptr_n
+    size_t * restrict ptr_n
     )
 {
   int status = 0;
@@ -22,7 +22,7 @@ get_vec(
   size_t payload_len = 0; int num_read;
   size_t len_param1 = 0; char *param1 = NULL;
   status = mk_dt_string(name, &param1, &len_param1);  cBYE(status);
-  uint32_t width = 0;  char *data = NULL; int sz = 0;
+  uint32_t width = 0;  char *data = NULL; size_t sz = 0;
 
   if ( name == NULL  ) { go_BYE(-1); }
   if ( qtype == NULL  ) { go_BYE(-1); }
@@ -93,7 +93,7 @@ get_vec(
     // #define XT_ARRAY_BOOL    36 /* P  data: int(n),byte,byte,... */
     // See set_vec.c as well
   }
-  int n = num_left_to_read / width;
+  size_t n = num_left_to_read / width;
   // if ( n * width != len ) { go_BYE(-1); }
   // TODO TODO n--; //  TODO TODO TODO P1 P1 WHY is this needed?
   // I think above is done because server pads with extra 8 bytes at end
@@ -113,7 +113,7 @@ int
 get_vec_len(
     int sock, // INPUT 
     const char * const name, // INPUT 
-    int *ptr_n
+    size_t *ptr_n
     )
 {
   int status = 0;
@@ -126,7 +126,7 @@ get_vec_len(
   status = exec_str(sock, Rcmd, &exec_out, &len_out, XT_ARRAY_INT); 
   cBYE(status);
   if ( ( exec_out == NULL ) || ( len_out == 0 ) ) { go_BYE(-1); }
-  *ptr_n = ((int *)exec_out)[0];
+  *ptr_n = ((size_t *)exec_out)[0];
 BYE:
   free_if_non_null(exec_out);
   free_if_non_null(Rcmd);

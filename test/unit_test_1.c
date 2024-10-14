@@ -16,15 +16,15 @@
 static int
 test1(
     int sock,
-    int n,
+    size_t n,
     int niters
     )
 {
   int status = 0;
-  char *xF8 = NULL, *chk_xF8 = NULL; int chk_n;
+  char *xF8 = NULL, *chk_xF8 = NULL; size_t chk_n;
   // make some data to send 
   xF8 = malloc(n *sizeof(double));
-  for ( int i = 0; i < n; i++ ) { 
+  for ( size_t i = 0; i < n; i++ ) { 
     xF8[i] = 10*(i+1);
   }
   //------
@@ -37,7 +37,7 @@ test1(
     // check data sent same as data returned
     if ( n != chk_n ) { go_BYE(-1); }
     if ( chk_xF8 == NULL ) { go_BYE(-1); }
-    for ( int j = 0; j < n; j++ ) {
+    for ( size_t j = 0; j < n; j++ ) {
       if ( ((double *)xF8)[j] != ((double *)chk_xF8)[j] ) { go_BYE(-1); }
     }
   }
@@ -110,15 +110,15 @@ test_get_SC_1(
     char **Cstr = NULL;
     status = exec_str(sock, Rcmd, NULL, NULL, -1); cBYE(status);
     if ( !chk_R_class(sock, "dates", "character") ) { go_BYE(-1); } 
-    int chk_n;
+    size_t chk_n;
     status = get_vec_len(sock, "dates", &chk_n);
     if ( chk_n != 22 ) { go_BYE(-1); } 
-    char *data = NULL; int nbytes = 0; 
+    char *data = NULL; size_t nbytes = 0; 
     status = get_vec(sock, "dates", "SC", &data, &nbytes); cBYE(status);
     status = str_array_R_to_C(data, nbytes, 12, chk_n, NULL, &Cstr); 
     cBYE(status);
     if ( Cstr == NULL ) { go_BYE(-1); }
-    for ( int j = 0; j < chk_n; j++ ) {
+    for ( size_t j = 0; j < chk_n; j++ ) {
       // printf("%d:%s\n", j, Cstr[j]);
       free_if_non_null(Cstr[j]);
     }
@@ -142,16 +142,16 @@ test_get_SC_2(
     char **Cstr = NULL;
     status = exec_str(sock, Rcmd, NULL, NULL, -1); cBYE(status);
     if ( !chk_R_class(sock, "vecSC", "character") ) { go_BYE(-1); } 
-    int chk_n;
+    size_t chk_n;
     status = get_vec_len(sock, "vecSC", &chk_n);
     if ( chk_n != 5 ) { go_BYE(-1); } 
-    char *data = NULL; int nbytes = 0; 
+    char *data = NULL; size_t nbytes = 0; 
     uint32_t width = 5; 
     status = get_vec(sock, "vecSC", "SC", &data, &nbytes); cBYE(status);
     status = str_array_R_to_C(data, nbytes, width, chk_n, NULL, &Cstr); 
     cBYE(status);
     if ( Cstr == NULL ) { go_BYE(-1); }
-    for ( int j = 0; j < chk_n; j++ ) {
+    for ( size_t j = 0; j < chk_n; j++ ) {
       // printf("%d:%s\n", j, Cstr[j]);
       free_if_non_null(Cstr[j]);
     }
@@ -166,19 +166,19 @@ BYE:
 static int 
 test3_SC(
     int sock,
-    int n,
+    size_t n,
     int niters
     )
 {
   int status = 0;
-  char *exec_out = NULL; size_t len_out; int chk_n;
+  char *exec_out = NULL; size_t len_out; size_t chk_n;
   char *data = NULL; uint32_t width = 16;
   // make some data to send 
   // [ "a", "ab", "abc", ....] 
   data = malloc(width * n); memset(data, 0, width*n);
   uint32_t len = 1;
   uint32_t cum_len = 0;
-  for ( int i = 0; i < n; i++ ) { 
+  for ( size_t i = 0; i < n; i++ ) { 
     char buf[width]; memset(buf, 0, width);
     for ( uint32_t j = 0; j < len; j++ ) { 
       buf[j] = 'a' + j;
@@ -199,7 +199,7 @@ test3_SC(
     if ( strcmp(exec_out, "character") != 0 ) { go_BYE(-1); } 
     if ( !chk_R_class(sock, "vecSC", "character") ) { go_BYE(-1); } 
     status = get_vec_len(sock, "vecSC", &chk_n);
-    if ( chk_n != (int)n ) { go_BYE(-1); } 
+    if ( chk_n != n ) { go_BYE(-1); } 
   }
   //-------------------
   printf("Successfully completed %s \n", __FUNCTION__);
@@ -214,29 +214,29 @@ BYE:
 static int 
 test3(
     int sock,
-    int n,
+    size_t n,
     int niters
     )
 {
   int status = 0;
-  char *exec_out = NULL; size_t len_out; int chk_n;
+  char *exec_out = NULL; size_t len_out; size_t chk_n;
   double  *xF8 = NULL, *chk_xF8 = NULL; 
   int32_t *xI4 = NULL, *chk_xI4 = NULL; 
   int8_t  *xI1 = NULL, *chk_xI1 = NULL; 
-  // int chk_n;
+  // size_t chk_n;
   // make some data to send 
   xF8 = malloc(n *sizeof(double));
-  for ( int i = 0; i < n; i++ ) { xF8[i] = 10*(i+1); }
+  for ( size_t i = 0; i < n; i++ ) { xF8[i] = 10*(i+1); }
 
   xI4 = malloc(n *sizeof(int32_t));
   int32_t j = 0;
-  for ( int i = 0; i < n; i++, j++ ) { 
+  for ( size_t i = 0; i < n; i++, j++ ) { 
     xI4[i] = j; if ( j == 16 ) {j = 0;} 
   }
 
   xI1 = malloc(n *sizeof(int8_t));
   j = 0;
-  for ( int i = 0; i < n; i++ ) { 
+  for ( size_t i = 0; i < n; i++ ) { 
     xI1[i] = j; 
     if ( j == 1 ) { j = 0; continue; } 
     if ( j == 0 ) { j = 1; continue; } 
@@ -291,7 +291,7 @@ test3(
     cBYE(status);
     if ( n != chk_n ) { go_BYE(-1); }
     if ( chk_xI4 == NULL ) { go_BYE(-1); }
-    for ( int k = 0; k < n; k++ ) {
+    for ( size_t k = 0; k < n; k++ ) {
       if ( ((int32_t *)xI4)[k] != ((int32_t *)chk_xI4)[k] ) { go_BYE(-1); }
     }
     free_if_non_null(chk_xI4);
@@ -301,7 +301,7 @@ test3(
     cBYE(status);
     if ( n != chk_n ) { go_BYE(-1); }
     if ( chk_xF8 == NULL ) { go_BYE(-1); }
-    for ( int k = 0; k < n; k++ ) {
+    for ( size_t k = 0; k < n; k++ ) {
       if ( ((double *)xF8)[k] != ((double *)chk_xF8)[k] ) { go_BYE(-1); }
     }
     free_if_non_null(chk_xF8);
@@ -312,7 +312,7 @@ test3(
     // check data sent same as data returned
     if ( n != chk_n ) { go_BYE(-1); }
     if ( chk_xI1 == NULL ) { go_BYE(-1); }
-    for ( int k = 0; k < n; k++ ) {
+    for ( size_t k = 0; k < n; k++ ) {
       if ( ((int8_t *)xI1)[k] != ((int8_t *)chk_xI1)[k] ) { go_BYE(-1); }
     }
     free_if_non_null(chk_xI1);
@@ -356,10 +356,10 @@ test5(
     )
 {
   int status = 0;
-  int n = 1024; double *xF8 = NULL;
+  size_t n = 1024; double *xF8 = NULL;
   // make a vector called "some_vec"
   xF8 = malloc(n *sizeof(double));
-  for ( int i = 0; i < n; i++ ) { xF8[i] = 10*(i+1); }
+  for ( size_t i = 0; i < n; i++ ) { xF8[i] = 10*(i+1); }
   status = set_vec(sock, "some_vec", "F8", xF8, n, 0); cBYE(status); 
   //------
   for ( int i = 0; i < niters; i++ ) {
@@ -503,15 +503,15 @@ BYE:
 static int
 test9(
     int sock,
-    int n,
+    size_t n,
     int niters
     )
 {
   int status = 0;
-  double *xF8 = NULL;  int chk_n;
+  double *xF8 = NULL;  size_t chk_n;
   // make some data to send 
   xF8 = malloc(n *sizeof(double));
-  for ( int i = 0; i < n; i++ ) { xF8[i] = 0; }
+  for ( size_t i = 0; i < n; i++ ) { xF8[i] = 0; }
   //------
   for ( int i = 0; i < niters; i++ ) {
     // send some data 
