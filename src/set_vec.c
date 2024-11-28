@@ -1,5 +1,8 @@
 #include "incs.h"
 #include "aux_rcli.h"
+#include "get_R_class.h"
+#include "exists.h"
+#include "chk_R_class.h"
 #include "set_vec.h"
 
 /* Given a vector of "n" elements, stored at address "data"
@@ -11,11 +14,15 @@ set_vec(
     const char * const name,
     const char * const qtype,
     void *data, // [n]
+    const bool * const nn, // [n] optional
     uint32_t n,
     uint32_t in_width // only when qtype == SC
     )
 {
   int status = 0;
+  char *nn_name = NULL; 
+  char *cmd = NULL; 
+  char *vec_class = NULL; 
   struct phdr ph; 
   size_t payload_len = 0;
   size_t len_param1 = 0; char *param1 = NULL;
@@ -37,7 +44,8 @@ set_vec(
     width = sizeof(int32_t);
     xt_val = XT_ARRAY_INT;
   }
-  else if ( strcmp(qtype, "I1") == 0 ) { 
+  else if ( ( strcmp(qtype, "BL") == 0 ) || 
+            ( strcmp(qtype, "I1") == 0 ) ) { 
     width = sizeof(int8_t);
     xt_val = XT_ARRAY_BOOL;
   }
@@ -148,7 +156,50 @@ All SEXPs must be padded to 4-byte boundaries (to avoid misalligned memory acces
   uint32_t r_status  = uiptr[0] >> 24;
   if ( r_status != 0 ) { go_BYE(-1); }
   */
+  // deal with null vector if needed
+  if ( nn != NULL ) {
+    if ( sizeof(bool) != sizeof(int8_t) ) { go_BYE(-1); }
+    size_t len = strlen(name); 
+    nn_name = malloc(1*len+64);
+    cmd     = malloc(3*len+64); 
+
+    sprintf(nn_name, "Xnn_%s", name);
+    status = set_vec(sock, nn_name, "I1", (void *)nn, NULL, n, 1);
+    cBYE(status);
+    sprintf(cmd, "%s <- %s == 1 ", nn_name, nn_name); 
+    status = exec_str(sock, cmd, NULL, NULL, -1); cBYE(status);
+#ifdef DEBUG
+    bool brslt;
+    status = is_vector(sock, nn_name, &brslt); cBYE(status);
+    if ( !brslt ) { go_BYE(-1); }
+    vec_class = get_R_class(sock, name); 
+    if ( vec_class == NULL ) { go_BYE(-1); }
+    free_if_non_null(vec_class);
+    if ( !chk_R_class(sock, nn_name, "logical") ) { go_BYE(-1); }
+#endif
+    // Tell R to apply the bool vector to the original vector 
+    if ( strcmp(qtype, "I4") == 0 ) { 
+        sprintf(cmd, "%s <- ifelse(%s, %s, NA_integer_); \n",
+            name, nn_name, name); 
+    }
+    else if ( strcmp(qtype, "F8") == 0 ) { 
+        sprintf(cmd, "%s <- ifelse(%s, %s, NA_real_); \n",
+            name, nn_name, name); 
+    }
+    else if ( strcmp(qtype, "SC") == 0 ) { 
+        sprintf(cmd, "%s <- ifelse(%s, %s, NA_character_); \n",
+            name, nn_name, name); 
+    }
+    else {
+        // Other cases not implemented as yet TODO P3
+        go_BYE(-1);
+    }
+    status = exec_str(sock, cmd, NULL, NULL, -1); cBYE(status);
+  }
 BYE:
+  free_if_non_null(vec_class);
+  free_if_non_null(nn_name);
+  free_if_non_null(cmd);
   free_if_non_null(param1);
   free_if_non_null(param2);
   free_if_non_null(alt_data);

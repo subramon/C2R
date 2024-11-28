@@ -5,7 +5,7 @@ WARN :=  -Wall -W -Waggregate-return -Wcast-align -Wmissing-prototypes
 WARN += -Wnested-externs -Wshadow -Wwrite-strings 
 
 DBGFLAGS= 
-DBGFLAGS= -g -O0
+DBGFLAGS= -g -O0 -DDEBUG
 
 OPTFLAGS= -O4
 OPTFLAGS= 
@@ -35,9 +35,11 @@ LIB_SRCS := src/aux_rcli.c
 LIB_SRCS += src/get_named_vec.c 
 LIB_SRCS += src/set_vec.c 
 LIB_SRCS += src/get_vec.c 
+LIB_SRCS += src/get_vec_len.c 
 LIB_SRCS += src/get_bool.c 
 LIB_SRCS += src/exists.c 
 LIB_SRCS += src/chk_R_class.c 
+LIB_SRCS += src/get_R_class.c 
 LIB_SRCS += src/n_df.c 
 LIB_SRCS += src/get_F8.c 
 LIB_SRCS += src/get_I4.c 
